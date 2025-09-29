@@ -74,52 +74,26 @@ def extract_capabilities_from_spec(spec_data: Dict[str, Any]) -> List[str]:
                 description = operation.get('description', '').lower()
                 path_lower = path.lower()
 
-                # Weather capabilities
-                if 'current' in path_lower or 'current' in summary:
-                    capabilities.append('current-weather')
-                elif 'forecast' in path_lower or 'forecast' in summary:
-                    capabilities.append('forecast')
-                elif 'history' in path_lower or 'historical' in summary:
-                    capabilities.append('historical')
-                elif 'astronomy' in path_lower or 'astronomy' in summary:
-                    capabilities.append('astronomy')
-                elif 'air' in path_lower or 'air-quality' in summary or 'aqi' in path_lower:
-                    capabilities.append('air-quality')
-                elif 'timezone' in path_lower:
-                    capabilities.append('timezone')
-                elif 'sports' in path_lower:
-                    capabilities.append('sports')
+                # Extract capabilities from operation IDs, summaries, and paths
+                # Use operation ID as capability if available
+                if operation_id:
+                    capabilities.append(operation_id)
 
-                # Search capabilities
-                if 'search' in path_lower or 'autocomplete' in path_lower or 'search' in summary:
-                    capabilities.append('search')
+                # Extract meaningful words from path segments
+                path_segments = [seg for seg in path_lower.split('/') if seg and not seg.startswith('{')]
+                for segment in path_segments:
+                    if len(segment) > 2:  # Ignore very short segments
+                        capabilities.append(segment)
 
-                # Country-specific capabilities
-                if any(keyword in path_lower for keyword in ['country', 'countries']):
-                    capabilities.append('country-info')
-                elif '/all' in path_lower and ('countries' in summary or 'countries' in description):
-                    capabilities.append('list-all-countries')
-                elif '/alpha' in path_lower or 'alpha code' in summary or 'country code' in summary:
-                    capabilities.append('search-by-code')
-                elif '/name' in path_lower and ('name' in summary or 'search' in summary):
-                    capabilities.append('search-by-name')
-                elif '/currency' in path_lower or 'currency' in summary:
-                    capabilities.append('search-by-currency')
-                elif '/capital' in path_lower or 'capital' in summary:
-                    capabilities.append('search-by-capital')
-                elif '/region' in path_lower or 'region' in summary:
-                    capabilities.append('search-by-region')
-                elif '/subregion' in path_lower or 'subregion' in summary:
-                    capabilities.append('search-by-subregion')
-                elif '/lang' in path_lower or 'language' in summary:
-                    capabilities.append('search-by-language')
+                # Extract key words from summary (first 3 meaningful words)
+                if summary:
+                    summary_words = [word for word in summary.split() if len(word) > 3]
+                    capabilities.extend(summary_words[:3])
 
-                # Payment/billing capabilities
-                if 'bill' in path_lower or 'payment' in path_lower or 'billing' in summary:
-                    capabilities.append('billing')
-
-    # Remove duplicates and return
-    return list(set(capabilities))
+    # Remove duplicates, filter out common words, and return
+    common_words = {'get', 'post', 'put', 'delete', 'patch', 'the', 'and', 'for', 'with', 'from', 'this', 'that', 'are', 'you', 'all', 'can', 'will', 'one', 'use'}
+    filtered_capabilities = [cap for cap in set(capabilities) if cap not in common_words and len(cap) > 2]
+    return sorted(filtered_capabilities)
 
 def extract_tags_from_spec(spec_data: Dict[str, Any], spec_name: str) -> List[str]:
     """Extract relevant tags from OpenAPI spec"""
@@ -135,25 +109,20 @@ def extract_tags_from_spec(spec_data: Dict[str, Any], spec_name: str) -> List[st
         elif isinstance(tag, str):
             tags.append(tag.lower())
 
-    # Add tags based on spec content
+    # Extract keywords from title and description
     title = spec_data.get('info', {}).get('title', '').lower()
     description = spec_data.get('info', {}).get('description', '').lower()
 
-    # Weather-related tags
-    if any(word in title + description for word in ['weather', 'forecast', 'climate']):
-        tags.extend(['weather', 'forecast'])
-        if 'humidity' in description:
-            tags.append('humidity')
-        if 'temperature' in description:
-            tags.append('temperature')
+    # Extract meaningful words from title and description
+    all_text = f"{title} {description}"
+    words = all_text.split()
 
-    # Country-related tags
-    if any(word in title + description for word in ['country', 'countries', 'nation']):
-        tags.extend(['countries', 'geography'])
+    # Filter out common words and extract meaningful keywords
+    common_words = {'api', 'the', 'and', 'for', 'with', 'from', 'this', 'that', 'are', 'you', 'all', 'can', 'will', 'one', 'use', 'get', 'via', 'about', 'information', 'data', 'service', 'services'}
+    meaningful_words = [word.strip('.,!?;:') for word in words if len(word) > 3 and word not in common_words]
 
-    # Payment/billing tags
-    if any(word in title + description for word in ['bill', 'payment', 'invoice']):
-        tags.extend(['billing', 'payment'])
+    # Take the first 5 meaningful words as tags
+    tags.extend(meaningful_words[:5])
 
     # Remove duplicates and return
     return list(set(tags))

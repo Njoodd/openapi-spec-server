@@ -19,12 +19,11 @@ if __name__ == "__main__":
 
     print("Starting OpenAPI Specification Server...")
     print("Available endpoints:")
-    print("  - Root: http://localhost:8001/")
-    print("  - Health: http://localhost:8001/health")
-    print("  - WeatherAPI YAML: http://localhost:8001/weatherapi/openapi.yaml")
-    print("  - WeatherAPI JSON: http://localhost:8001/weatherapi/openapi.json")
-    print("  - WeatherAPI Info: http://localhost:8001/weatherapi/info")
-    print("  - List Specs: http://localhost:8001/specs")
+    print("  - Root (Collections): http://localhost:8001/")
+    print("  - Health Check: http://localhost:8001/health")
+    print("  - List All Specs: http://localhost:8001/specs")
+    print("  - Individual Specs: http://localhost:8001/{spec_name}/openapi.json")
+    print("  - Spec Info: http://localhost:8001/{spec_name}/info")
     print("\nPress Ctrl+C to stop the server")
 
     uvicorn.run(
