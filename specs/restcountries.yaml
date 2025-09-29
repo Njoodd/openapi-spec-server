@@ -1,0 +1,637 @@
+openapi: 3.0.3
+info:
+  title: REST Countries API
+  description: |
+    REST Countries API provides detailed information about countries worldwide.
+    Get information about countries via a RESTful API.
+  version: 3.1.0
+  contact:
+    name: REST Countries
+    url: https://restcountries.com
+  license:
+    name: Mozilla Public License 2.0
+    url: https://mozilla.org/en-US/MPL/2.0/
+
+servers:
+  - url: https://restcountries.com/v3.1
+    description: REST Countries API v3.1
+
+paths:
+  /all:
+    get:
+      tags:
+        - Countries
+      summary: Get all countries
+      description: Retrieve information about all countries. The fields parameter is required and you must specify up to 10 fields.
+      parameters:
+        - name: fields
+          in: query
+          required: true
+          description: Comma-separated list of fields to include in response (up to 10 fields)
+          schema:
+            type: string
+            example: "name,capital,population"
+      responses:
+        '200':
+          description: List of all countries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Country'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /alpha/{alphacode}:
+    get:
+      tags:
+        - Countries
+      summary: Get country by alpha code
+      description: Retrieve a country by its cca2, ccn3, cca3, or cioc country code
+      parameters:
+        - name: alphacode
+          in: path
+          required: true
+          description: Country code (cca2, ccn3, cca3, or cioc)
+          schema:
+            type: string
+            example: "US"
+        - $ref: '#/components/parameters/fields'
+      responses:
+        '200':
+          description: Country information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Country'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /alpha/:
+    get:
+      tags:
+        - Countries
+      summary: Get countries by multiple alpha codes
+      description: Retrieve multiple countries by their country codes (comma-separated)
+      parameters:
+        - name: codes
+          in: query
+          required: true
+          description: Comma-separated list of country codes (cca2, ccn3, cca3, or cioc)
+          schema:
+            type: string
+            example: "US,CA,MX"
+        - $ref: '#/components/parameters/fields'
+      responses:
+        '200':
+          description: List of countries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Country'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /currency/{currency}:
+    get:
+      tags:
+        - Countries
+      summary: Get countries by currency
+      description: Retrieve countries that use a specific currency
+      parameters:
+        - name: currency
+          in: path
+          required: true
+          description: ISO 4217 currency code
+          schema:
+            type: string
+            pattern: '^[A-Za-z]{3}$'
+            example: "USD"
+        - $ref: '#/components/parameters/fields'
+      responses:
+        '200':
+          description: List of countries using the currency
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Country'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /name/{name}:
+    get:
+      tags:
+        - Countries
+      summary: Get countries by name
+      description: Search for countries by name
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: Country name or part of name
+          schema:
+            type: string
+            example: "United States"
+        - name: fullText
+          in: query
+          description: Whether to search for exact match
+          schema:
+            type: boolean
+            default: false
+        - $ref: '#/components/parameters/fields'
+      responses:
+        '200':
+          description: List of matching countries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Country'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /callingcode/{callingcode}:
+    get:
+      tags:
+        - Countries
+      summary: Get countries by calling code
+      description: Retrieve countries by their international calling code
+      parameters:
+        - name: callingcode
+          in: path
+          required: true
+          description: International calling code
+          schema:
+            type: string
+            example: "1"
+        - $ref: '#/components/parameters/fields'
+      responses:
+        '200':
+          description: List of countries with the calling code
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Country'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /capital/{capital}:
+    get:
+      tags:
+        - Countries
+      summary: Get countries by capital
+      description: Search for countries by capital city
+      parameters:
+        - name: capital
+          in: path
+          required: true
+          description: Capital city name
+          schema:
+            type: string
+            example: "London"
+        - $ref: '#/components/parameters/fields'
+      responses:
+        '200':
+          description: List of countries with matching capital
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Country'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /region/{region}:
+    get:
+      tags:
+        - Countries
+      summary: Get countries by region
+      description: Retrieve countries in a specific region
+      parameters:
+        - name: region
+          in: path
+          required: true
+          description: Region name
+          schema:
+            type: string
+            example: "Europe"
+        - $ref: '#/components/parameters/fields'
+      responses:
+        '200':
+          description: List of countries in the region
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Country'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /subregion/{subregion}:
+    get:
+      tags:
+        - Countries
+      summary: Get countries by subregion
+      description: Retrieve countries in a specific subregion
+      parameters:
+        - name: subregion
+          in: path
+          required: true
+          description: Subregion name
+          schema:
+            type: string
+            example: "Western Europe"
+        - $ref: '#/components/parameters/fields'
+      responses:
+        '200':
+          description: List of countries in the subregion
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Country'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /lang/{lang}:
+    get:
+      tags:
+        - Countries
+      summary: Get countries by language
+      description: Retrieve countries where a specific language is spoken
+      parameters:
+        - name: lang
+          in: path
+          required: true
+          description: Language code or name
+          schema:
+            type: string
+            example: "en"
+        - $ref: '#/components/parameters/fields'
+      responses:
+        '200':
+          description: List of countries speaking the language
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Country'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /demonym/{demonym}:
+    get:
+      tags:
+        - Countries
+      summary: Get countries by demonym
+      description: Retrieve countries by their demonym (name for residents)
+      parameters:
+        - name: demonym
+          in: path
+          required: true
+          description: Demonym (e.g., "American", "British")
+          schema:
+            type: string
+            example: "American"
+        - $ref: '#/components/parameters/fields'
+      responses:
+        '200':
+          description: List of countries with matching demonym
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Country'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /regionalbloc/{regionalbloc}:
+    get:
+      tags:
+        - Countries
+      summary: Get countries by regional bloc
+      description: Retrieve countries belonging to a specific regional bloc
+      parameters:
+        - name: regionalbloc
+          in: path
+          required: true
+          description: Regional bloc acronym (e.g., "EU", "ASEAN")
+          schema:
+            type: string
+            example: "EU"
+        - $ref: '#/components/parameters/fields'
+      responses:
+        '200':
+          description: List of countries in the regional bloc
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Country'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  parameters:
+    fields:
+      name: fields
+      in: query
+      description: Comma-separated list of fields to include in response (up to 10 fields). Required for /all endpoint.
+      schema:
+        type: string
+        example: "name,capital,population"
+
+  responses:
+    BadRequest:
+      description: Bad request - invalid parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            status: 400
+            message: "Bad Request"
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            status: 404
+            message: "Not Found"
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            status: 500
+            message: "Internal Server Error"
+
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          description: HTTP status code
+        message:
+          type: string
+          description: Error message
+
+    Country:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Country name
+          example: "United States of America"
+        topLevelDomain:
+          type: array
+          items:
+            type: string
+          description: Top-level domains
+          example: [".us"]
+        alpha2Code:
+          type: string
+          description: ISO 3166-1 alpha-2 code
+          example: "US"
+        alpha3Code:
+          type: string
+          description: ISO 3166-1 alpha-3 code
+          example: "USA"
+        callingCodes:
+          type: array
+          items:
+            type: string
+          description: International calling codes
+          example: ["1"]
+        capital:
+          type: string
+          description: Capital city
+          example: "Washington, D.C."
+        altSpellings:
+          type: array
+          items:
+            type: string
+          description: Alternative spellings
+          example: ["US", "USA", "United States of America"]
+        region:
+          type: string
+          description: Region
+          example: "Americas"
+        subregion:
+          type: string
+          description: Subregion
+          example: "Northern America"
+        population:
+          type: integer
+          description: Population
+          example: 323947000
+        latlng:
+          type: array
+          items:
+            type: number
+          description: Latitude and longitude
+          example: [38.0, -97.0]
+        demonym:
+          type: string
+          description: Demonym
+          example: "American"
+        area:
+          type: number
+          description: Area in square kilometers
+          example: 9629091.0
+        gini:
+          type: number
+          description: Gini coefficient
+          example: 48.0
+        timezones:
+          type: array
+          items:
+            type: string
+          description: Timezones
+          example: ["UTC-12:00", "UTC-11:00", "UTC-10:00", "UTC-09:00", "UTC-08:00", "UTC-07:00", "UTC-06:00", "UTC-05:00", "UTC-04:00", "UTC+10:00", "UTC+12:00"]
+        borders:
+          type: array
+          items:
+            type: string
+          description: Border countries (alpha-3 codes)
+          example: ["CAN", "MEX"]
+        nativeName:
+          type: string
+          description: Native name
+          example: "United States"
+        numericCode:
+          type: string
+          description: ISO 3166-1 numeric code
+          example: "840"
+        currencies:
+          type: array
+          items:
+            $ref: '#/components/schemas/Currency'
+          description: Currencies used in the country
+        languages:
+          type: array
+          items:
+            $ref: '#/components/schemas/Language'
+          description: Languages spoken in the country
+        translations:
+          $ref: '#/components/schemas/Translations'
+        flag:
+          type: string
+          description: Flag emoji or URL
+          example: "🇺🇸"
+        regionalBlocs:
+          type: array
+          items:
+            $ref: '#/components/schemas/RegionalBloc'
+          description: Regional blocs the country belongs to
+        cioc:
+          type: string
+          description: International Olympic Committee code
+          example: "USA"
+
+    Currency:
+      type: object
+      properties:
+        code:
+          type: string
+          description: ISO 4217 currency code
+          example: "USD"
+        name:
+          type: string
+          description: Currency name
+          example: "United States dollar"
+        symbol:
+          type: string
+          description: Currency symbol
+          example: "$"
+
+    Language:
+      type: object
+      properties:
+        iso639_1:
+          type: string
+          description: ISO 639-1 language code
+          example: "en"
+        iso639_2:
+          type: string
+          description: ISO 639-2 language code
+          example: "eng"
+        name:
+          type: string
+          description: Language name
+          example: "English"
+        nativeName:
+          type: string
+          description: Native language name
+          example: "English"
+
+    Translations:
+      type: object
+      properties:
+        de:
+          type: string
+          description: German translation
+        es:
+          type: string
+          description: Spanish translation
+        fr:
+          type: string
+          description: French translation
+        ja:
+          type: string
+          description: Japanese translation
+        it:
+          type: string
+          description: Italian translation
+        br:
+          type: string
+          description: Brazilian Portuguese translation
+        pt:
+          type: string
+          description: Portuguese translation
+        nl:
+          type: string
+          description: Dutch translation
+        hr:
+          type: string
+          description: Croatian translation
+        fa:
+          type: string
+          description: Persian translation
+
+    RegionalBloc:
+      type: object
+      properties:
+        acronym:
+          type: string
+          description: Regional bloc acronym
+          example: "EU"
+        name:
+          type: string
+          description: Regional bloc name
+          example: "European Union"
+        otherAcronyms:
+          type: array
+          items:
+            type: string
+          description: Other acronyms for the bloc
+        otherNames:
+          type: array
+          items:
+            type: string
+          description: Other names for the bloc
+
+tags:
+  - name: Countries
+    description: API endpoints for country information with field filtering capabilities

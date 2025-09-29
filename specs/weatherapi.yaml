@@ -1,0 +1,867 @@
+openapi: 3.0.3
+info:
+  title: WeatherAPI.com
+  description: |
+    WeatherAPI.com provides comprehensive weather data including current conditions,
+    forecasts, historical weather, air quality, astronomy, and sports data.
+
+    Features:
+    - Current weather conditions
+    - Weather forecast up to 14 days
+    - Historical weather data
+    - Air quality information
+    - Astronomy data (sunrise, sunset, moon phases)
+    - Sports data
+    - Time zone information
+    - Search and autocomplete for locations
+  version: 1.0.2
+  contact:
+    name: WeatherAPI.com
+    url: https://www.weatherapi.com
+    email: support@weatherapi.com
+  license:
+    name: WeatherAPI.com Terms
+    url: https://www.weatherapi.com/terms.aspx
+
+servers:
+  - url: https://api.weatherapi.com/v1
+    description: Production server
+
+security:
+  - ApiKeyAuth: []
+
+paths:
+  /current.json:
+    get:
+      summary: Current Weather
+      description: Get real-time current weather information for a location
+      operationId: getCurrentWeather
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: |
+            Location query parameter. Can be:
+            - Latitude and longitude (decimal degree) e.g: 48.8567,2.3508
+            - City name e.g: Paris
+            - US zip e.g: 10001
+            - UK postcode e.g: SW1
+            - Canada postal code e.g: G2J
+            - metar:<metar code> e.g: metar:EGLL
+            - iata:<3 digit airport code> e.g: iata:DXB
+            - auto:ip IP lookup e.g: auto:ip
+          schema:
+            type: string
+          example: "London"
+        - name: aqi
+          in: query
+          required: false
+          description: Get air quality data
+          schema:
+            type: string
+            enum: ["yes", "no"]
+            default: "no"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentWeatherResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /forecast.json:
+    get:
+      summary: Weather Forecast
+      description: Get weather forecast for up to 14 days
+      operationId: getForecast
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Location query parameter
+          schema:
+            type: string
+          example: "London"
+        - name: days
+          in: query
+          required: false
+          description: Number of days of forecast (1-14)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 14
+            default: 3
+        - name: aqi
+          in: query
+          required: false
+          description: Get air quality data
+          schema:
+            type: string
+            enum: ["yes", "no"]
+            default: "no"
+        - name: alerts
+          in: query
+          required: false
+          description: Get weather alerts
+          schema:
+            type: string
+            enum: ["yes", "no"]
+            default: "no"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForecastResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /history.json:
+    get:
+      summary: Historical Weather
+      description: Get historical weather data for a specific date
+      operationId: getHistoricalWeather
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Location query parameter
+          schema:
+            type: string
+          example: "London"
+        - name: dt
+          in: query
+          required: true
+          description: Date for historical data (YYYY-MM-DD format)
+          schema:
+            type: string
+            format: date
+          example: "2023-01-01"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HistoricalWeatherResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /search.json:
+    get:
+      summary: Search Locations
+      description: Search for locations to get weather data
+      operationId: searchLocations
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Search query for location
+          schema:
+            type: string
+          example: "Lond"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Location'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /astronomy.json:
+    get:
+      summary: Astronomy Data
+      description: Get astronomy data including sunrise, sunset, moonrise, moonset and moon phases
+      operationId: getAstronomy
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Location query parameter
+          schema:
+            type: string
+          example: "London"
+        - name: dt
+          in: query
+          required: false
+          description: Date for astronomy data (YYYY-MM-DD format)
+          schema:
+            type: string
+            format: date
+          example: "2023-01-01"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AstronomyResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /timezone.json:
+    get:
+      summary: Time Zone Information
+      description: Get time zone information for a location
+      operationId: getTimeZone
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Location query parameter
+          schema:
+            type: string
+          example: "London"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeZoneResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /sports.json:
+    get:
+      summary: Sports Data
+      description: Get sports data for various sports and leagues
+      operationId: getSports
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Location query parameter
+          schema:
+            type: string
+          example: "London"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SportsResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: query
+      name: key
+      description: API key for authentication
+
+  responses:
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Unauthorized:
+      description: Unauthorized - API key is missing or invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Forbidden:
+      description: Forbidden - API key quota exceeded or location not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  schemas:
+    Location:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 2801268
+        name:
+          type: string
+          example: "London"
+        region:
+          type: string
+          example: "City of London, Greater London"
+        country:
+          type: string
+          example: "United Kingdom"
+        lat:
+          type: number
+          format: float
+          example: 51.52
+        lon:
+          type: number
+          format: float
+          example: -0.11
+        url:
+          type: string
+          example: "london-city-of-london-greater-london-united-kingdom"
+
+    Current:
+      type: object
+      properties:
+        last_updated_epoch:
+          type: integer
+          example: 1697299200
+        last_updated:
+          type: string
+          example: "2023-10-14 22:00"
+        temp_c:
+          type: number
+          format: float
+          example: 11.0
+        temp_f:
+          type: number
+          format: float
+          example: 51.8
+        is_day:
+          type: integer
+          example: 0
+        condition:
+          $ref: '#/components/schemas/Condition'
+        wind_mph:
+          type: number
+          format: float
+          example: 7.4
+        wind_kph:
+          type: number
+          format: float
+          example: 11.9
+        wind_degree:
+          type: integer
+          example: 250
+        wind_dir:
+          type: string
+          example: "WSW"
+        pressure_mb:
+          type: number
+          format: float
+          example: 1009.0
+        pressure_in:
+          type: number
+          format: float
+          example: 29.8
+        precip_mm:
+          type: number
+          format: float
+          example: 0.0
+        precip_in:
+          type: number
+          format: float
+          example: 0.0
+        humidity:
+          type: integer
+          example: 82
+        cloud:
+          type: integer
+          example: 75
+        feelslike_c:
+          type: number
+          format: float
+          example: 9.2
+        feelslike_f:
+          type: number
+          format: float
+          example: 48.6
+        vis_km:
+          type: number
+          format: float
+          example: 10.0
+        vis_miles:
+          type: number
+          format: float
+          example: 6.0
+        uv:
+          type: number
+          format: float
+          example: 1.0
+        gust_mph:
+          type: number
+          format: float
+          example: 14.1
+        gust_kph:
+          type: number
+          format: float
+          example: 22.7
+        air_quality:
+          $ref: '#/components/schemas/AirQuality'
+
+    Condition:
+      type: object
+      properties:
+        text:
+          type: string
+          example: "Partly cloudy"
+        icon:
+          type: string
+          example: "//cdn.weatherapi.com/weather/64x64/night/116.png"
+        code:
+          type: integer
+          example: 1003
+
+    AirQuality:
+      type: object
+      properties:
+        co:
+          type: number
+          format: float
+          example: 233.4
+        no2:
+          type: number
+          format: float
+          example: 15.5
+        o3:
+          type: number
+          format: float
+          example: 54.3
+        so2:
+          type: number
+          format: float
+          example: 4.5
+        pm2_5:
+          type: number
+          format: float
+          example: 7.2
+        pm10:
+          type: number
+          format: float
+          example: 9.8
+        us-epa-index:
+          type: integer
+          example: 1
+        gb-defra-index:
+          type: integer
+          example: 1
+
+    ForecastDay:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+          example: "2023-10-15"
+        date_epoch:
+          type: integer
+          example: 1697328000
+        day:
+          $ref: '#/components/schemas/Day'
+        astro:
+          $ref: '#/components/schemas/Astro'
+        hour:
+          type: array
+          items:
+            $ref: '#/components/schemas/Hour'
+
+    Day:
+      type: object
+      properties:
+        maxtemp_c:
+          type: number
+          format: float
+          example: 15.2
+        maxtemp_f:
+          type: number
+          format: float
+          example: 59.4
+        mintemp_c:
+          type: number
+          format: float
+          example: 8.3
+        mintemp_f:
+          type: number
+          format: float
+          example: 46.9
+        avgtemp_c:
+          type: number
+          format: float
+          example: 11.5
+        avgtemp_f:
+          type: number
+          format: float
+          example: 52.7
+        maxwind_mph:
+          type: number
+          format: float
+          example: 9.6
+        maxwind_kph:
+          type: number
+          format: float
+          example: 15.5
+        totalprecip_mm:
+          type: number
+          format: float
+          example: 0.3
+        totalprecip_in:
+          type: number
+          format: float
+          example: 0.01
+        totalsnow_cm:
+          type: number
+          format: float
+          example: 0.0
+        avgvis_km:
+          type: number
+          format: float
+          example: 10.0
+        avgvis_miles:
+          type: number
+          format: float
+          example: 6.0
+        avghumidity:
+          type: number
+          format: float
+          example: 75.0
+        daily_will_it_rain:
+          type: integer
+          example: 1
+        daily_chance_of_rain:
+          type: integer
+          example: 73
+        daily_will_it_snow:
+          type: integer
+          example: 0
+        daily_chance_of_snow:
+          type: integer
+          example: 0
+        condition:
+          $ref: '#/components/schemas/Condition'
+        uv:
+          type: number
+          format: float
+          example: 4.0
+
+    Hour:
+      type: object
+      properties:
+        time_epoch:
+          type: integer
+          example: 1697328000
+        time:
+          type: string
+          example: "2023-10-15 00:00"
+        temp_c:
+          type: number
+          format: float
+          example: 10.2
+        temp_f:
+          type: number
+          format: float
+          example: 50.4
+        is_day:
+          type: integer
+          example: 0
+        condition:
+          $ref: '#/components/schemas/Condition'
+        wind_mph:
+          type: number
+          format: float
+          example: 5.8
+        wind_kph:
+          type: number
+          format: float
+          example: 9.4
+        wind_degree:
+          type: integer
+          example: 262
+        wind_dir:
+          type: string
+          example: "W"
+        pressure_mb:
+          type: number
+          format: float
+          example: 1013.0
+        pressure_in:
+          type: number
+          format: float
+          example: 29.91
+        precip_mm:
+          type: number
+          format: float
+          example: 0.0
+        precip_in:
+          type: number
+          format: float
+          example: 0.0
+        humidity:
+          type: integer
+          example: 87
+        cloud:
+          type: integer
+          example: 55
+        feelslike_c:
+          type: number
+          format: float
+          example: 8.9
+        feelslike_f:
+          type: number
+          format: float
+          example: 48.0
+        windchill_c:
+          type: number
+          format: float
+          example: 8.9
+        windchill_f:
+          type: number
+          format: float
+          example: 48.0
+        heatindex_c:
+          type: number
+          format: float
+          example: 10.2
+        heatindex_f:
+          type: number
+          format: float
+          example: 50.4
+        dewpoint_c:
+          type: number
+          format: float
+          example: 8.7
+        dewpoint_f:
+          type: number
+          format: float
+          example: 47.7
+        will_it_rain:
+          type: integer
+          example: 0
+        chance_of_rain:
+          type: integer
+          example: 0
+        will_it_snow:
+          type: integer
+          example: 0
+        chance_of_snow:
+          type: integer
+          example: 0
+        vis_km:
+          type: number
+          format: float
+          example: 10.0
+        vis_miles:
+          type: number
+          format: float
+          example: 6.0
+        gust_mph:
+          type: number
+          format: float
+          example: 11.0
+        gust_kph:
+          type: number
+          format: float
+          example: 17.6
+        uv:
+          type: number
+          format: float
+          example: 1.0
+
+    Astro:
+      type: object
+      properties:
+        sunrise:
+          type: string
+          example: "07:44 AM"
+        sunset:
+          type: string
+          example: "06:15 PM"
+        moonrise:
+          type: string
+          example: "09:54 AM"
+        moonset:
+          type: string
+          example: "07:49 PM"
+        moon_phase:
+          type: string
+          example: "New Moon"
+        moon_illumination:
+          type: string
+          example: "2"
+        is_moon_up:
+          type: integer
+          example: 0
+        is_sun_up:
+          type: integer
+          example: 0
+
+    Alert:
+      type: object
+      properties:
+        headline:
+          type: string
+          example: "Heavy Rain Warning"
+        msgtype:
+          type: string
+          example: "Alert"
+        severity:
+          type: string
+          example: "Moderate"
+        urgency:
+          type: string
+          example: "Expected"
+        areas:
+          type: string
+          example: "London"
+        category:
+          type: string
+          example: "Met"
+        certainty:
+          type: string
+          example: "Likely"
+        event:
+          type: string
+          example: "Heavy rain"
+        note:
+          type: string
+          example: "Heavy rain is expected"
+        effective:
+          type: string
+          example: "2023-10-15T08:00:00+00:00"
+        expires:
+          type: string
+          example: "2023-10-15T23:59:00+00:00"
+        desc:
+          type: string
+          example: "Heavy rain is expected across the region"
+        instruction:
+          type: string
+          example: "Take extra care when traveling"
+
+    CurrentWeatherResponse:
+      type: object
+      properties:
+        location:
+          $ref: '#/components/schemas/Location'
+        current:
+          $ref: '#/components/schemas/Current'
+
+    ForecastResponse:
+      type: object
+      properties:
+        location:
+          $ref: '#/components/schemas/Location'
+        current:
+          $ref: '#/components/schemas/Current'
+        forecast:
+          type: object
+          properties:
+            forecastday:
+              type: array
+              items:
+                $ref: '#/components/schemas/ForecastDay'
+        alerts:
+          type: object
+          properties:
+            alert:
+              type: array
+              items:
+                $ref: '#/components/schemas/Alert'
+
+    HistoricalWeatherResponse:
+      type: object
+      properties:
+        location:
+          $ref: '#/components/schemas/Location'
+        forecast:
+          type: object
+          properties:
+            forecastday:
+              type: array
+              items:
+                $ref: '#/components/schemas/ForecastDay'
+
+    AstronomyResponse:
+      type: object
+      properties:
+        location:
+          $ref: '#/components/schemas/Location'
+        astronomy:
+          type: object
+          properties:
+            astro:
+              $ref: '#/components/schemas/Astro'
+
+    TimeZoneResponse:
+      type: object
+      properties:
+        location:
+          $ref: '#/components/schemas/Location'
+
+    SportsResponse:
+      type: object
+      properties:
+        football:
+          type: array
+          items:
+            type: object
+        cricket:
+          type: array
+          items:
+            type: object
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: integer
+              example: 1006
+            message:
+              type: string
+              example: "No matching location found."
+
+tags:
+  - name: current
+    description: Current weather data
+  - name: forecast
+    description: Weather forecast data
+  - name: historical
+    description: Historical weather data
+  - name: search
+    description: Location search
+  - name: astronomy
+    description: Astronomy data
+  - name: timezone
+    description: Time zone information
+  - name: sports
+    description: Sports data
